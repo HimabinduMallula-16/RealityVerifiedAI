@@ -11,7 +11,7 @@ import java.net.URL;
 @WebServlet("/verify")
 public class VerifyServlet extends HttpServlet {
 
-    private static final String API_KEY = "AIzaSyBCGm6TWZULMHsPMGzyTxY88VSAk2P3-Ws";
+    private static final String API_KEY = "AIzaSyAVzOz9pVVWz-KFx_5QFEXrAyoERkLttIM";
 
     
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -173,3 +173,4 @@ public class VerifyServlet extends HttpServlet {
         System.out.println("Available models: " + response);
     }
 }
+
