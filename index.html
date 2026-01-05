@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Reality-Verified AI</title>
+
+<style>
+:root {
+  --bg: #fff1f5;
+  --card: #ffffff;
+  --primary: #ec4899;
+  --secondary: #f9a8d4;
+  --text: #374151;
+  --reasoning-bg: #fff7fb;
+  --verify-bg: #f0fdf4;
+}
+
+/* Dark Mode */
+body.dark {
+  --bg: #1f2937;
+  --card: #111827;
+  --text: #f9fafb;
+  --reasoning-bg: #111827;
+  --verify-bg: #111827;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Layout */
+.container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 25px;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  color: var(--primary);
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.toggle-btn {
+  background: var(--secondary);
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* Card */
+.card {
+  background: var(--card);
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 12px 25px rgba(0,0,0,0.08);
+  margin-bottom: 25px;
+}
+
+/* Input */
+textarea {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid #fbcfe8;
+  font-size: 15px;
+  resize: vertical;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* Button */
+.run-btn {
+  margin-top: 15px;
+  background: linear-gradient(135deg, #ec4899, #f472b6);
+  border: none;
+  color: white;
+  padding: 12px 26px;
+  font-size: 16px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.run-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Sections */
+.section {
+  padding: 18px;
+  border-radius: 14px;
+  margin-top: 15px;
+}
+
+.reasoning {
+  background: var(--reasoning-bg);
+  border-left: 5px solid var(--primary);
+}
+
+.verification {
+  background: var(--verify-bg);
+  border-left: 5px solid #22c55e;
+}
+
+/* Text */
+pre {
+  white-space: pre-wrap;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Status */
+.status {
+  font-size: 18px;
+  margin-left: 8px;
+}
+
+.success { color: #22c55e; }
+.warning { color: #f59e0b; }
+.error { color: #ef4444; }
+
+.trust {
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  margin-top: 30px;
+  font-size: 13px;
+  opacity: 0.7;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <h1>AI REALITY INTEGRITY MODEL</h1>
+    <button class="toggle-btn" onclick="toggleDark()">🌙 Dark Mode</button>
+  </div>
+
+  <div class="card">
+    <label><b>Enter any question</b></label><br><br>
+    <textarea id="question" rows="4"
+      placeholder="Example: A bus travels at 40 km/h for 5 hours. Later, assume the speed was 60 km/h."></textarea>
+    <br>
+    <button class="run-btn" id="runBtn" onclick="runAI()">Run AI</button>
+  </div>
+
+  <div class="card section reasoning">
+    <h3>AI Reasoning</h3>
+    <pre id="reasoning">Waiting for input…</pre>
+  </div>
+
+  <div class="card section verification">
+    <h3>
+      Verification Result
+      <span id="statusIcon" class="status"></span>
+    </h3>
+    <pre id="verification">Waiting for input…</pre>
+    <div id="trustScore" class="trust"></div>
+  </div>
+
+  <div class="footer">
+    Responsible AI • Transparent Reasoning • Gemini Powered
+  </div>
+
+</div>
+
+<script>
+function toggleDark() {
+  document.body.classList.toggle("dark");
+}
+
+function detectAssumptions(text) {
+  const keys = ["assume", "assumed", "assumption"];
+  return keys.some(k => text.toLowerCase().includes(k));
+}
+
+function cleanMath(text) {
+  return text
+    .replace(/\$+/g, "")
+    .replace(/\\text\{([^}]+)\}/g, "$1")
+    .replace(/\\times/g, "×");
+}
+
+async function runAI() {
+  const q = document.getElementById("question").value.trim();
+  const btn = document.getElementById("runBtn");
+
+  if (!q) {
+    alert("Please enter a question.");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerText = "Running…";
+
+  reasoning.innerText = "Thinking…";
+  verification.innerText = "Verifying…";
+  statusIcon.innerText = "";
+  trustScore.innerText = "";
+
+  try {
+    const res = await fetch("verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question: q })
+    });
+
+    const data = await res.json();
+
+    const cleaned = cleanMath(data.reasoning);
+    reasoning.innerText = cleaned;
+    verification.innerText = data.verification;
+
+    let trust = 95, cls = "success", icon = "✔";
+
+    if (/invalid|contradict/i.test(data.verification)) {
+      trust = 35; cls = "error"; icon = "❌";
+    } else if (detectAssumptions(cleaned)) {
+      trust = 75; cls = "warning"; icon = "⚠";
+    }
+
+    trustScore.innerText = "Trust Score: " + trust + "%";
+    statusIcon.innerText = icon;
+    statusIcon.className = "status " + cls;
+
+  } catch (e) {
+    verification.innerText = e.toString();
+  }
+
+  btn.disabled = false;
+  btn.innerText = "Run AI";
+}
+</script>
+
+</body>
+</html>
